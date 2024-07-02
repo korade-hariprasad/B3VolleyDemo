@@ -1,5 +1,6 @@
 package sumagoscope.madipt.b3volleydemo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -19,6 +20,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,15 +34,36 @@ public class MainActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
     ArrayList<Product> productList;
+    FloatingActionButton fabLogout;
+    FirebaseAuth mAuth;
+    FirebaseUser user;
+    TextView tvUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.recyclerView);
+        tvUsername = findViewById(R.id.tvUsername);
+        fabLogout = findViewById(R.id.fabLogout);
+        mAuth = FirebaseAuth.getInstance();
+
+        if(mAuth.getCurrentUser()!=null) user = mAuth.getCurrentUser();
+        tvUsername.setText(user.getEmail());
+        /*
+        Log.d("debug", user.getDisplayName());
+        Log.d("debug", user.getPhoneNumber());
+        */
+
         productList = new ArrayList<>();
         recyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this, 2, LinearLayoutManager.VERTICAL, false));
         getDataFromServer();
+        fabLogout.setOnClickListener(v->{
+            mAuth.signOut();
+            Intent i = new Intent(MainActivity.this, LoginActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        });
     }
 
     private void getDataFromServer() {
